@@ -21,14 +21,69 @@ def plotdiffs(vid):
     fps = vid.get(cv2.CAP_PROP_FPS)
     frame_count = vid.get(cv2.CAP_PROP_FRAME_COUNT)
     diffs = np.array([])
-    for i in range(1, int(frame_count)-1):
-        dif = diffinframes(readframe(i), readframe(i+1))
-        print(i)
-        diffs = np.append(diffs,dif)
-    fig, ax = plt.subplots(figsize=(5, 4))
-    ax.scatter(np.arange(1, int(frame_count)-1),diffs, label='diffs between frames')
-    plt.show()
 
+    vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    ret, prevframe = vid.read()
+    while vid.isOpened():
+        ret, currentframe = vid.read()
+        if not ret:
+            break
+        dif = diffinframes(prevframe, currentframe)
+        diffs = np.append(diffs, dif)
+        prevframe = currentframe
+    h_plot(diffs, "mean square diffs", 0)
+    findszene(diffs)
+def diffofdiffs(diffarr):
+    #similarity to previous error value
+    diffofdiffs = np.array([])
+
+    for i in range(len(diffarr) - 1):
+        diffofdiffs = np.append(diffofdiffs, np.abs(diffarr[i]-diffarr[i+1]))
+
+    print(diffofdiffs.min())
+
+    h_plot(diffofdiffs, "diffofdiffs")
+
+def findszene(diffarr):
+    minaountofframes = 5
+    maxdiff = 20
+
+    # I want seqzenzes of this were the diff is small, how many frames? how small is it?
+    lines= []
+    linestarts = []
+    currentline = np.array([])
+    currentlinestart = 0
+    for index, d in enumerate(diffarr, start=1):
+        if d < maxdiff:
+            currentline = np.append(currentline, d)
+        else:
+            #break line
+            if(len(currentline) > minaountofframes):#cut the line here
+                lines.append(currentline)
+                #lines.append(lines, currentline)
+                currentline = np.array([])
+                linestarts.append(currentlinestart)
+            currentlinestart = index +1
+    if(len(currentline) > minaountofframes):
+        lines.append(currentline)
+        linestarts.append(currentlinestart)
+    print(len(lines), len(linestarts))
+    for line,linest in zip(lines, linestarts):
+        h_plot(line, "line "+str(linest), linest)
+        #current diff,  currentline, start index, mean diff in line, length
+    #there should be one szene right at the start, one in the middle and one at the end
+    print("found", len(lines), "sequenzes")
+
+
+def h_plot(arr, desciption):
+    h_plot(arr, desciption, 0)
+
+def h_plot(arr, description, start):
+    fig, ax = plt.subplots(figsize=(5, 4))
+    x = np.arange(start, len(arr) + start)
+    ax.scatter(x, arr, label='diffs between frames')
+    ax.set_ylabel(description)
+    plt.show()
 
 def mse(imageA, imageB):
     # the 'Mean Squared Error' between the two images is the
@@ -56,26 +111,17 @@ def diffinframes(frame1, frame2):
 
 def readVideo(vid):
     while vid.isOpened():
-        now = datetime.now()
         ret, frame = vid.read()
-        print(datetime.now() -now)
         if not ret:
             break
-
-def readframe(frame_number):
-    vid.set(cv2.CAP_PROP_POS_FRAMES, int(frame_number)-1)  # optional
-    success, frame = vid.read()
-    if success:
-        return frame
-    return False
 
 from datetime import datetime
 
 
 if __name__ == "__main__":
-    vidarr = []
+
     now = datetime.now()
-    vid = cv2.VideoCapture('Videos/CV20_video_1.mp4')
+    vid = cv2.VideoCapture('Videos/CV20_video_50.mp4') #50 is black
     if not vid.isOpened():
         print("Error opening video stream or file")
 
@@ -83,6 +129,7 @@ if __name__ == "__main__":
     frame_count = vid.get(cv2.CAP_PROP_FRAME_COUNT)
     print("videodata: fps: ", fps, "framecount: ", frame_count)
 
+    #readVideo(vid)
     #showVideo(vid)
     plotdiffs(vid)
     #vid.set(cv2.CV_CAP_PROP_POS_FRAMES, frame_number = 1)
