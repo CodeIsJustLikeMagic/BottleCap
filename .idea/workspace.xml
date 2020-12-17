@@ -38,6 +38,9 @@
       <module name="BottleCaps" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="true" />
@@ -101,7 +104,10 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1607702559781</updated>
-      <workItem from="1607702573466" duration="23672000" />
+      <workItem from="1607702573466" duration="23730000" />
+      <workItem from="1607744098481" duration="106000" />
+      <workItem from="1607863091058" duration="21029000" />
+      <workItem from="1608214850875" duration="5433000" />
     </task>
     <servers />
   </component>
@@ -113,44 +119,59 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="62" y="178" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607718763050" />
-    <state width="1658" height="140" key="GridCell.Tab.0.bottom" timestamp="1607733639725">
+    <state width="1877" height="330" key="GridCell.Tab.0.bottom" timestamp="1608222041376">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="140" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607733639725" />
-    <state width="1658" height="140" key="GridCell.Tab.0.center" timestamp="1607733639725">
+    <state width="1877" height="330" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608222041376" />
+    <state width="1877" height="330" key="GridCell.Tab.0.center" timestamp="1608222041376">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="140" key="GridCell.Tab.0.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607733639725" />
-    <state width="1658" height="140" key="GridCell.Tab.0.left" timestamp="1607733639724">
+    <state width="1877" height="330" key="GridCell.Tab.0.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608222041376" />
+    <state width="1877" height="330" key="GridCell.Tab.0.left" timestamp="1608222041376">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="140" key="GridCell.Tab.0.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607733639724" />
-    <state width="1658" height="140" key="GridCell.Tab.0.right" timestamp="1607733639725">
+    <state width="1877" height="330" key="GridCell.Tab.0.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608222041376" />
+    <state width="1877" height="330" key="GridCell.Tab.0.right" timestamp="1608222041376">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="140" key="GridCell.Tab.0.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607733639725" />
-    <state width="1658" height="306" key="GridCell.Tab.1.bottom" timestamp="1607730920977">
+    <state width="1877" height="330" key="GridCell.Tab.0.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608222041376" />
+    <state width="1877" height="306" key="GridCell.Tab.1.bottom" timestamp="1608220944274">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="306" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607730920977" />
-    <state width="1658" height="306" key="GridCell.Tab.1.center" timestamp="1607730920977">
+    <state width="1877" height="306" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608220944274" />
+    <state width="1877" height="306" key="GridCell.Tab.1.center" timestamp="1608220944273">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="306" key="GridCell.Tab.1.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607730920977" />
-    <state width="1658" height="306" key="GridCell.Tab.1.left" timestamp="1607730920977">
+    <state width="1877" height="306" key="GridCell.Tab.1.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608220944273" />
+    <state width="1877" height="306" key="GridCell.Tab.1.left" timestamp="1608220944273">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="306" key="GridCell.Tab.1.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607730920977" />
-    <state width="1658" height="306" key="GridCell.Tab.1.right" timestamp="1607730920977">
+    <state width="1877" height="306" key="GridCell.Tab.1.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608220944273" />
+    <state width="1877" height="306" key="GridCell.Tab.1.right" timestamp="1608220944273">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1658" height="306" key="GridCell.Tab.1.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607730920977" />
+    <state width="1877" height="306" key="GridCell.Tab.1.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608220944273" />
     <state x="463" y="165" key="SettingsEditor" timestamp="1607718743808">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="463" y="165" key="SettingsEditor/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607718743808" />
+    <state width="968" height="528" key="XDebugger.FullValuePopup" timestamp="1607897524728">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="968" height="528" key="XDebugger.FullValuePopup/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607897524728" />
+    <state x="656" y="343" key="com.intellij.ide.util.TipDialog" timestamp="1608214851718">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="656" y="343" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608214851718" />
+  </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="PythonConfigurationType">
+        <watch expression="lines[0].max" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/BottleCaps$BottleCaps.coverage" NAME="BottleCaps Coverage Results" MODIFIED="1607733639716" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/BottleCaps$BottleCaps.coverage" NAME="BottleCaps Coverage Results" MODIFIED="1608222041371" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
