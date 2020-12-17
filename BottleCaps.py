@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import statistics
+#region help methods
 def h_show(title, image):
     resize = True
     height = image.shape[0]
@@ -15,8 +16,21 @@ def h_show(title, image):
         image = cv2.resize(image, (int(width * 0.5), int(height * 0.5)))
     cv2.imshow(title, image)
 
-#return a quantified differnece between two frames
+def h_plot(arr, desciption):
+    h_plot(arr, desciption, 0)
 
+def h_plot(arr, description, start):
+    return
+    fig, ax = plt.subplots(figsize=(5, 4))
+    x = np.arange(start, len(arr) + start)
+    ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
+    ax.set_ylabel(description)
+    global maxdiff
+    ax.axhline(y=maxdiff, color = "black");
+    plt.show()
+#return a quantified differnece between two frames
+#endregion
+#region find frames
 def diffsbetweenallframes(vid):
 
     diffs = np.array([])
@@ -118,18 +132,6 @@ def smallerstart(elem):
 def sortbymean(elem):
     return np.mean(elem[0])
 
-def h_plot(arr, desciption):
-    h_plot(arr, desciption, 0)
-
-def h_plot(arr, description, start):
-    fig, ax = plt.subplots(figsize=(5, 4))
-    x = np.arange(start, len(arr) + start)
-    ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
-    ax.set_ylabel(description)
-    global maxdiff
-    ax.axhline(y=maxdiff, color = "black");
-    plt.show()
-
 def mse(imageA, imageB):
     # the 'Mean Squared Error' between the two images is the
     # sum of the squared difference between the two images;
@@ -157,6 +159,47 @@ def readVideo(vid):
 from datetime import datetime
 import os
 
+
+
+def readframe(vid, frame_number):
+    vid.set(cv2.CAP_PROP_POS_FRAMES, int(frame_number))  # optional
+    success, frame = vid.read()
+    if success:
+        return frame
+    return False
+#endregion
+
+#region regions of interest
+def diffbetweenFrames(emptyframe, fullframe,filename):
+    difference = cv2.subtract(emptyframe, fullframe)
+    difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
+    difference = cv2.GaussianBlur(difference, (5,5), 0)
+    #h_show('dif gray_'+filename, difference)
+    ret, thresh = cv2.threshold(difference, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # black roi on white
+    kernel = np.ones((3, 3), np.uint8)
+    #h_show('thresh_' + filename, thresh)
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+    #erosion followed by dilation
+    #h_show('opening' + filename, opening)
+    dilated = cv2.dilate(opening, kernel, iterations=1) # grow background. get rid of artifacts
+    h_show('dilated_' + filename, dilated)
+    #ret, mask = cv2.threshold(Conv_hsv_Gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+    #difference[mask != 255] = [255, 255, 255]
+
+    #h_show('emptyframe_'+filename, emptyframe)
+    #h_show('fullframe_'+filename, fullframe)
+
+#endregion
+
+def testRegionOfInterest(low, high):
+    for i in range(low, high+1):
+        print(i)
+        fullframe = cv2.imread('Results/CV20_video_'+str(i)+'.png')
+        emptyframe = cv2.imread('Results/CV20_video_'+str(i)+'_empty.png')
+        diffbetweenFrames(emptyframe, fullframe, 'Video_'+str(i))
+
+
 def testAllVideos():
     #estimate every image in the folder
     folder = 'Videos'
@@ -165,18 +208,6 @@ def testAllVideos():
     for path, file in zip(paths, files):
         if file.endswith('.mp4'):
             testVideo(path, file)
-
-def readframe(vid, frame_number):
-    vid.set(cv2.CAP_PROP_POS_FRAMES, int(frame_number))  # optional
-    success, frame = vid.read()
-    if success:
-        return frame
-    return False
-
-def difbetweenFrames(emptyframe, fullframe):
-    difference = cv2.subtract(emptyframe, fullframe)
-    h_show("difference",difference)
-    pass
 
 def testVideo(path,file):
     print('start', path, '...')
@@ -194,12 +225,13 @@ def testVideo(path,file):
         print('to much action, threshhold excluded  everything')
         return
     emptyscene, fullscene = getframeindeces(linestarts, lines)
-    emptyframe = readframe(vid, fullscene)
+    emptyframe = readframe(vid, emptyscene)
     fullframe = readframe(vid, fullscene)
     print('choose frame: ', fullscene, ' min ', fullscene/fps)
-    cv2.imwrite('Results/'+file[:-3]+'png', fullframe)
+    cv2.imwrite('Results/'+file[:-4]+'.png', fullframe)
+    cv2.imwrite('Results/' + file[:-4] + '_empty.png', emptyframe)
     vid.release()
-    difbetweenFrames(emptyframe, fullframe)
+    #difbetweenFrames(emptyframe, fullframe)
     print("end. time for", file, datetime.now()-now)
 
 
@@ -214,9 +246,10 @@ if __name__ == "__main__":
     #readVideo(vid)
     #showVideo(vid)
     #testAllVideos()
-    testVideo("Videos/CV20_video_3.mp4", "CV20_video_3.mp4")
-
+    #testVideo("Videos/CV20_video_3.mp4", "CV20_video_3.mp4")
+    testRegionOfInterest(1, 10)
     print("total time", datetime.now()-now)
 
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
 
