@@ -198,7 +198,7 @@ def initialRegionsOfInterest(emptyframe, fullframe, filename):
     cleanedfullframe = (1 - differenceMask) * 255 + differenceMask * cleanedfullframe
     #h_show('cleanedframe'+filename, cleanedfullframe)
 
-def imshow_components(img,filename,originalimage):
+def imshow_components(img,filename,originalimage, saveCrops = False):
     num_labels, labels = cv2.connectedComponents(img)
     # Map component labels to hue val
     occurenceOfLabels = np.bincount(labels.flatten())
@@ -237,11 +237,28 @@ def imshow_components(img,filename,originalimage):
             y2 = minwithout0(y2)
             y2 = h - y2
 
-            print(lblind,'x',x1,x2,'y',y1,y2)
+            #print(lblind, 'x', x1, x2, 'y', y1, y2)
             crop_img = originalimage[y1:y2, x1:x2].copy()
-            cv2.imwrite("Crops/"+str(lblind)+"_"+filename[:-4]+'.png', crop_img)
+            if saveCrops:
+                cv2.imwrite("Crops/"+str(lblind)+"_"+filename[:-4]+'.png', crop_img)
+            objclass, prob= predictionModel.prediction(crop_img)
+            cv2.rectangle(originalimage, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            # font
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            # org
+            org = (x1, y1)
+            # fontScale
+            fontScale = 1
+            # Blue color in BGR
+            color = (0, 0, 255)
+            # Line thickness of 2 px
+            thickness = 2
+            # Using cv2.putText() method
+            originalimage = cv2.putText(originalimage, objclass+str(prob), org, font,
+                                fontScale, color, thickness, cv2.LINE_AA)
             #h_show("testcropimg"+ str(lblind)+ filename, crop_img)
         # crop out rectangular region (of orig image) around label.
+    h_show("detected"+filename, originalimage)
     #0,0 is upper right corner
 
 
@@ -291,8 +308,8 @@ def testRegionOfInterest(low, high = None):
         fullframe = cv2.imread('Results/CV20_video_'+str(i)+'.png')
         emptyframe = cv2.imread('Results/CV20_video_'+str(i)+'_empty.png')
         if fullframe is not None and emptyframe is not None:
-            #initialRegionsOfInterest(emptyframe, fullframe, 'Video_' + str(i)+'.png')
-            regularasstemplatematching(fullframe, filename= 'Video'+str(i)+'.png')
+            initialRegionsOfInterest(emptyframe, fullframe, 'Video_' + str(i)+'.png')
+            #regularasstemplatematching(fullframe, filename= 'Video'+str(i)+'.png')
 
 
 
@@ -351,11 +368,66 @@ def regularasstemplatematching(matchImage, projektionimage = np.array([]), filen
     h_show('res ' + filename, projektionimage)
 
 import tensorflow as tf
-import pathlib
 
-def createTensorflowModel():
-    pass
+class PredictionModel:
+    IMG_WIDTH = 200
+    IMG_HEIGHT = 200
+    def __init__(self):
+        print('setting up TensorFlowModel')
 
+        img_data, class_name = self.create_dataset(r'TensorImages')
+        target_dict = {k: v for v, k in enumerate(np.unique(class_name))}
+        print(target_dict)
+        target_val = [target_dict[class_name[i]] for i in range(len(class_name))]
+        print(len(target_val))
+        model = tf.keras.Sequential(
+            [
+                tf.keras.layers.InputLayer(input_shape=(self.IMG_HEIGHT, self.IMG_WIDTH, 3)),
+                tf.keras.layers.Conv2D(filters=32, kernel_size=3, strides=(2, 2), activation='relu'),
+                tf.keras.layers.Conv2D(filters=64, kernel_size=3, strides=(2, 2), activation='relu'),
+                tf.keras.layers.Flatten(),
+                tf.keras.layers.Dense(4)
+            ])
+        print(model.summary())
+        model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+        history = model.fit(x=tf.cast(np.array(img_data), tf.float64), y=tf.cast(list(map(int, target_val)), tf.int32),
+                            epochs=5)
+        print(history)
+        print('finished TensorFlow Model')
+        self.model = model
+        self.class_name = class_name
+
+    def create_dataset(self, img_folder):
+        img_data_array = []
+        class_name = []
+
+        for dir1 in os.listdir(img_folder):
+            for file in os.listdir(os.path.join(img_folder, dir1)):
+                image_path = os.path.join(img_folder, dir1, file)
+                image = cv2.imread(image_path, cv2.COLOR_BGR2RGB)
+                image = cv2.resize(image, (self.IMG_HEIGHT, self.IMG_WIDTH), interpolation=cv2.INTER_AREA)
+                image = np.array(image)
+                image = image.astype('float32')
+                image /= 255
+                img_data_array.append(image)
+                class_name.append(dir1)
+        return img_data_array, class_name
+
+    def prediction(self, image):
+        image = cv2.resize(image, (self.IMG_HEIGHT, self.IMG_WIDTH), interpolation=cv2.INTER_AREA)
+        image = np.array(image)
+        image = image.astype('float32')
+        image /= 255
+        image = np.expand_dims(image, axis=0)
+
+        predictions = self.model.predict(image)
+        print(predictions)
+        m = np.argmax(predictions[0])
+        return np.unique(self.class_name)[m], predictions[0][m]
+        #use target dict instead {'FaceDowns': 0, 'FaceUps': 1}
+
+predictionModel = PredictionModel()
 
 if __name__ == "__main__":
 
@@ -366,7 +438,7 @@ if __name__ == "__main__":
     #showVideo(vid)
     #testAllVideos()
     #testVideo("Videos/CV20_video_3.mp4", "CV20_video_3.mp4")
-    testRegionOfInterest(1, 10)
+    testRegionOfInterest(1, 3)
     print("total time", datetime.now()-now)
 
     cv2.waitKey(0)

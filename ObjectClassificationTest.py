@@ -45,19 +45,22 @@ model=tf.keras.Sequential(
 print(model.summary())
 model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
-history = model.fit(x=tf.cast(np.array(img_data), tf.float64), y=tf.cast(list(map(int,target_val)),tf.int32), epochs=5)
+history = model.fit(x=tf.cast(np.array(img_data), tf.float64), y=tf.cast(list(map(int,target_val)),tf.int32), epochs=20)
 print(history)
+
+#test prediction with one image
 image_path = r'TensorImages/FaceUps/faceUp (1).png'
-image = cv2.imread(image_path, cv2.COLOR_BGR2RGB)
-image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH), interpolation=cv2.INTER_AREA)
-image = np.array(image)
-image = image.astype('float32')
-image /= 255
-image = np.expand_dims(image, axis=0)
+def testimage(image_path):
+    image = cv2.imread(image_path, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH), interpolation=cv2.INTER_AREA)
+    image = np.array(image)
+    image = image.astype('float32')
+    image /= 255
+    image = np.expand_dims(image, axis=0)
 
-predictions = model.predict(image)
-print(predictions)
-predictions = (predictions > 0).flatten()
-#accuracy_score(results, pred)
-
-print(np.unique(class_name))
+    predictions = model.predict(image)
+    print(predictions)
+    m = np.argmax(predictions[0])
+    print(image_path, 'is predicted to be class:', np.unique(class_name)[m])
+testimage(image_path)
+testimage(r'TensorImages/FaceUps/faceUp (2).png')
