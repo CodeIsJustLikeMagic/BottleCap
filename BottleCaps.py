@@ -14,7 +14,7 @@ def h_show(title, image):
     # image = cv2.resize(image, (width, height))
     if resize:
         image = cv2.resize(image, (int(width * 0.5), int(height * 0.5)))
-    #cv2.imshow(title, image)
+    cv2.imshow(title, image)
 
 def h_plot(arr, description, start = 0):
     plot = False
@@ -291,7 +291,8 @@ def testRegionOfInterest(low, high = None):
         fullframe = cv2.imread('Results/CV20_video_'+str(i)+'.png')
         emptyframe = cv2.imread('Results/CV20_video_'+str(i)+'_empty.png')
         if fullframe is not None and emptyframe is not None:
-            initialRegionsOfInterest(emptyframe, fullframe, 'Video_' + str(i)+'.png')
+            #initialRegionsOfInterest(emptyframe, fullframe, 'Video_' + str(i)+'.png')
+            regularasstemplatematching(fullframe, filename= 'Video'+str(i)+'.png')
 
 
 
@@ -335,7 +336,7 @@ maxdiff = 50
 def regularasstemplatematching(matchImage, projektionimage = np.array([]), filename ="", templatefilepath = 'faceDown.png'):
     if len(projektionimage) == 0:
         projektionimage = matchImage
-    img_gray = matchImage #cv2.cvtColor(matchImage, cv2.COLOR_BGR2GRAY)
+    img_gray = cv2.cvtColor(matchImage, cv2.COLOR_BGR2GRAY)
     template = cv2.imread(templatefilepath, 0)
     h_show("matchImage", matchImage)
     h_show("template",template)
@@ -352,47 +353,20 @@ def regularasstemplatematching(matchImage, projektionimage = np.array([]), filen
 import tensorflow as tf
 import pathlib
 
-def network():
-    #https://www.tensorflow.org/tutorials/images/classification
-    #https://stackoverflow.com/questions/37340129/tensorflow-training-on-my-own-image
-    print("TensorFlow version: {}".format(tf.__version__))
-    print("Eager execution: {}".format(tf.executing_eagerly()))
-    #laden von bildern mit keras.preprocessing, zu einem tf.data.Dataset machen
-    # step 1
-
-    fdfolder = 'FaceDowns/'
-    fufolder = 'FaceUps/'
-    filenames = tf.constant([fdfolder+'faceDown(1).png', fdfolder+'faceDown(2).png', fufolder+'faceUp(1).png', fufolder+'faceUp(2).png'])
-    labels = tf.constant([0, 0, 1, 1])# 0-facedown, 1-faceup
-
-    # step 2: create a dataset returning slices of `filenames`
-    dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
-
-    def im_file_to_tensor(file, label):
-        def _im_file_to_tensor(file, label):
-            path = f"../foo/bar/{file.numpy().decode()}"
-            im = tf.image.decode_jpeg(tf.io.read_file(path), channels=3)
-            im = tf.cast(im, tf.float32) / 255.0
-            return im, label
-
-        return tf.py_function(_im_file_to_tensor,
-                              inp=(file, label),
-                              Tout=(tf.float32, tf.uint8))
-
-    dataset = dataset.map(im_file_to_tensor)
-    print('hoi')
+def createTensorflowModel():
+    pass
 
 
 if __name__ == "__main__":
 
     now = datetime.now()
 
-    network()
+    #network()
     #readVideo(vid)
     #showVideo(vid)
     #testAllVideos()
     #testVideo("Videos/CV20_video_3.mp4", "CV20_video_3.mp4")
-    #testRegionOfInterest(1, 100)
+    testRegionOfInterest(1, 10)
     print("total time", datetime.now()-now)
 
     cv2.waitKey(0)
