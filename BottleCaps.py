@@ -14,20 +14,18 @@ def h_show(title, image):
     # image = cv2.resize(image, (width, height))
     if resize:
         image = cv2.resize(image, (int(width * 0.5), int(height * 0.5)))
-    cv2.imshow(title, image)
+    #cv2.imshow(title, image)
 
-def h_plot(arr, desciption):
-    h_plot(arr, desciption, 0)
-
-def h_plot(arr, description, start):
-    return
-    fig, ax = plt.subplots(figsize=(5, 4))
-    x = np.arange(start, len(arr) + start)
-    ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
-    ax.set_ylabel(description)
-    global maxdiff
-    ax.axhline(y=maxdiff, color = "black");
-    plt.show()
+def h_plot(arr, description, start = 0):
+    plot = False
+    if plot:
+        fig, ax = plt.subplots(figsize=(5, 4))
+        x = np.arange(start, len(arr) + start)
+        ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
+        ax.set_ylabel(description)
+        global maxdiff
+        ax.axhline(y=maxdiff, color = "black");
+        plt.show()
 #return a quantified differnece between two frames
 #endregion
 #region find frames
@@ -170,34 +168,131 @@ def readframe(vid, frame_number):
 #endregion
 
 #region regions of interest
-def diffbetweenFrames(emptyframe, fullframe,filename):
+def initialRegionsOfInterest(emptyframe, fullframe, filename):
+    kernel = np.ones((3, 3), np.uint8)
+    h_show('fullframe'+filename, fullframe)
     difference = cv2.subtract(emptyframe, fullframe)
     difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
-    difference = cv2.GaussianBlur(difference, (5,5), 0)
-    #h_show('dif gray_'+filename, difference)
-    ret, thresh = cv2.threshold(difference, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    difference = cv2.GaussianBlur(difference, (5,5), 2)
+    difference = (255-difference)
+    #difference = difference * 5
+    ret, thresh = cv2.threshold(difference, 0, 255,  cv2.THRESH_OTSU)
     # black roi on white
-    kernel = np.ones((3, 3), np.uint8)
-    #h_show('thresh_' + filename, thresh)
-    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-    #erosion followed by dilation
-    #h_show('opening' + filename, opening)
-    dilated = cv2.dilate(opening, kernel, iterations=1) # grow background. get rid of artifacts
-    h_show('dilated_' + filename, dilated)
-    #ret, mask = cv2.threshold(Conv_hsv_Gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
-    #difference[mask != 255] = [255, 255, 255]
+    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)  #erosion followed by dilation
+    differentregions = cv2.erode(opening, kernel, iterations=2) # grow bottle cap regions
+    differentregions = 255 - differentregions
+    #h_show('differenceMask', differentregions)
+    imshow_components(differentregions, filename,fullframe)
+    #watershedthings(fullframe,differentregions, filename)
+    differenceMask = np.ones(fullframe.shape[:2], dtype="uint8")
+    differenceMask[:, :] = (differentregions != 0)  # 0 or 1 depending on wehter it is ==0
 
-    #h_show('emptyframe_'+filename, emptyframe)
-    #h_show('fullframe_'+filename, fullframe)
 
+
+
+    #regularasstemplatematching(cleanededges, fullframe, filename)
+    #regularasstemplatematching(fullframe, "img" + str(i))
+
+    cleanedfullframe = cv2.cvtColor(fullframe, cv2.COLOR_BGR2GRAY)
+    #h_show('startcleanedframe' + filename, cleanedfullframe)
+    cleanedfullframe = (1 - differenceMask) * 255 + differenceMask * cleanedfullframe
+    #h_show('cleanedframe'+filename, cleanedfullframe)
+
+def imshow_components(img,filename,originalimage):
+    num_labels, labels = cv2.connectedComponents(img)
+    # Map component labels to hue val
+    occurenceOfLabels = np.bincount(labels.flatten())
+    occurenceOfLabels = occurenceOfLabels[1::]
+
+    label_hue = np.uint8(179*labels/np.max(labels))
+    blank_ch = 255*np.ones_like(label_hue)
+    labeled_img = cv2.merge([label_hue, blank_ch, blank_ch])
+
+    # cvt to BGR for display
+    labeled_img = cv2.cvtColor(labeled_img, cv2.COLOR_HSV2BGR)
+
+    # set bg label to black
+    labeled_img[label_hue==0] = 0
+
+    h_show('labeled'+filename, labeled_img)
+    #labels = labels.flatten()
+    labelsbackwards = np.flip(labels)
+    w, h = img.shape[::-1]
+    print(w,h)
+    #label 0 is background (black)
+    for occ, lblind in zip(occurenceOfLabels,range(1,num_labels)):
+        if occ > 300:
+            # get min x,y and max x,y position of l
+            x1 = np.argmax(labels == lblind, axis = 1)# along x axis
+            x1 = minwithout0(x1)
+
+            x2 = np.argmax(labelsbackwards == lblind, axis = 1)
+            x2 = minwithout0(x2)
+            x2 = w-x2
+
+            y1 = np.argmax(labels == lblind, axis = 0)# along x axis
+            y1 = minwithout0(y1)
+
+            y2 = np.argmax(labelsbackwards == lblind, axis = 0)# along x axis
+            y2 = minwithout0(y2)
+            y2 = h - y2
+
+            print(lblind,'x',x1,x2,'y',y1,y2)
+            crop_img = originalimage[y1:y2, x1:x2].copy()
+            cv2.imwrite("Crops/"+str(lblind)+"_"+filename[:-4]+'.png', crop_img)
+            #h_show("testcropimg"+ str(lblind)+ filename, crop_img)
+        # crop out rectangular region (of orig image) around label.
+    #0,0 is upper right corner
+
+
+def minwithout0(ar):
+    ar = ar[ar != 0]
+    if len(ar) == 0:
+        return 0
+    else:
+        return np.amin(ar)
+
+
+def watershedthings(coloredimage, roiImage, filename):
+    coloredimage = cv2.cvtColor(roiImage, cv2.COLOR_GRAY2RGB)
+    #roiImage = cv2.cvtColor(roiImage, cv2.COLOR_BGR2GRAY)
+    h_show("roiImage"+filename, roiImage)
+    ret, markers = cv2.connectedComponents(roiImage)
+    # print('markers',np.unique(markers))
+    print(np.unique(markers))
+    markers = markers + 1
+    labels = cv2.watershed(coloredimage, markers)
+    print(labels)
+    for label in np.unique(labels):
+        mask = np.zeros(roiImage.shape, dtype="uint8")
+        mask[labels == label] = 1
+        image = roiImage.copy()
+        image = mask * 255 + (1-mask) * 0
+        h_show("single Region "+str(label)+" "+filename, image)
 #endregion
 
-def testRegionOfInterest(low, high):
+def fuckaroundwithedges(fullframe, filename, differenceMask,differentregions,kernel):
+    #what is, just hear me out here, what if we mask the edges?
+    edges = cv2.Canny(fullframe, 30, 200, kernel)
+    cleanededges = (1-differenceMask) * 0 + differenceMask * edges
+    h_show('cleanededges' + filename, cleanededges)
+    #cleanededges  = cv2.dilate(cleanededges, kernel, iterations=2)
+    #h_show('dilated edges'+filename, cleanededges)
+
+    fullmask = differentregions + cleanededges
+    h_show('differenceMask'+filename, differentregions)
+    h_show('fullmask'+filename, fullmask)
+
+def testRegionOfInterest(low, high = None):
+    if high is None:
+        high = low
     for i in range(low, high+1):
         print(i)
         fullframe = cv2.imread('Results/CV20_video_'+str(i)+'.png')
         emptyframe = cv2.imread('Results/CV20_video_'+str(i)+'_empty.png')
-        diffbetweenFrames(emptyframe, fullframe, 'Video_'+str(i))
+        if fullframe is not None and emptyframe is not None:
+            initialRegionsOfInterest(emptyframe, fullframe, 'Video_' + str(i)+'.png')
+
 
 
 def testAllVideos():
@@ -231,23 +326,73 @@ def testVideo(path,file):
     cv2.imwrite('Results/'+file[:-4]+'.png', fullframe)
     cv2.imwrite('Results/' + file[:-4] + '_empty.png', emptyframe)
     vid.release()
-    #difbetweenFrames(emptyframe, fullframe)
     print("end. time for", file, datetime.now()-now)
 
 
 maxdiff = 50
 
 
+def regularasstemplatematching(matchImage, projektionimage = np.array([]), filename ="", templatefilepath = 'faceDown.png'):
+    if len(projektionimage) == 0:
+        projektionimage = matchImage
+    img_gray = matchImage #cv2.cvtColor(matchImage, cv2.COLOR_BGR2GRAY)
+    template = cv2.imread(templatefilepath, 0)
+    h_show("matchImage", matchImage)
+    h_show("template",template)
+    w, h = template.shape[::-1]
+    res= cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
+    h_show('template matching '+filename, res)
+    threshold = 0.5
+    print(np.unique(res))
+    loc = np.where(res >= threshold)
+    for pt in zip(*loc[::-1]):
+        cv2.rectangle(projektionimage, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+    h_show('res ' + filename, projektionimage)
+
+import tensorflow as tf
+import pathlib
+
+def network():
+    #https://www.tensorflow.org/tutorials/images/classification
+    #https://stackoverflow.com/questions/37340129/tensorflow-training-on-my-own-image
+    print("TensorFlow version: {}".format(tf.__version__))
+    print("Eager execution: {}".format(tf.executing_eagerly()))
+    #laden von bildern mit keras.preprocessing, zu einem tf.data.Dataset machen
+    # step 1
+
+    fdfolder = 'FaceDowns/'
+    fufolder = 'FaceUps/'
+    filenames = tf.constant([fdfolder+'faceDown(1).png', fdfolder+'faceDown(2).png', fufolder+'faceUp(1).png', fufolder+'faceUp(2).png'])
+    labels = tf.constant([0, 0, 1, 1])# 0-facedown, 1-faceup
+
+    # step 2: create a dataset returning slices of `filenames`
+    dataset = tf.data.Dataset.from_tensor_slices((filenames, labels))
+
+    def im_file_to_tensor(file, label):
+        def _im_file_to_tensor(file, label):
+            path = f"../foo/bar/{file.numpy().decode()}"
+            im = tf.image.decode_jpeg(tf.io.read_file(path), channels=3)
+            im = tf.cast(im, tf.float32) / 255.0
+            return im, label
+
+        return tf.py_function(_im_file_to_tensor,
+                              inp=(file, label),
+                              Tout=(tf.float32, tf.uint8))
+
+    dataset = dataset.map(im_file_to_tensor)
+    print('hoi')
+
+
 if __name__ == "__main__":
 
     now = datetime.now()
 
-
+    network()
     #readVideo(vid)
     #showVideo(vid)
     #testAllVideos()
     #testVideo("Videos/CV20_video_3.mp4", "CV20_video_3.mp4")
-    testRegionOfInterest(1, 10)
+    #testRegionOfInterest(1, 100)
     print("total time", datetime.now()-now)
 
     cv2.waitKey(0)
