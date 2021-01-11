@@ -20,10 +20,12 @@ def h_plot(arr, description, filename = '', start = 0, save = False):
     if plot:
         fig, ax = plt.subplots(figsize=(5, 4))
         x = np.arange(start, len(arr) + start)
+        m = arr.mean()
         ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
         ax.set_ylabel(description)
         global maxdiff
         ax.axhline(y=maxdiff, color="black")
+        ax.axhline(y=m, color="red")
         if save:
             fig.savefig('Results/'+filename[:-4]+'_'+description+'.png')
         plt.show()
@@ -46,10 +48,10 @@ def diffsbetweenallframes(vid, filename, savePlot =False):
         ret, currentframe = vid.read()
         if not ret:
             break
-        dif = diffinframes(prevframe, currentframe)
+        dif = diffbetweenframes(prevframe, currentframe)
         diffs = np.append(diffs, dif)
         prevframe = currentframe
-    h_plot(diffs, "mean square diffs", start = 0, filename = filename, save = savePlot )
+    h_plot(diffs, "mean square diffs", start = 0, filename = filename )
     return diffs
 
 def diffofdiffs(diffarr):
@@ -65,13 +67,12 @@ def diffofdiffs(diffarr):
 
 def findsequences(diffarr):
     minaountofframes = 30
-    global maxdiff
-
     # I want seqzenzes of this were the diff is small, how many frames? how small is it?
     lines = []
     linestarts = []
     currentline = np.array([])
     currentlinestart = 0
+    maxdiff = diffarr.mean()# + np.var(diffarr)
     for index, d in enumerate(diffarr, start=1):
         if d < maxdiff:
             currentline = np.append(currentline, d)
@@ -82,7 +83,9 @@ def findsequences(diffarr):
                 #lines.append(lines, currentline)
                 currentline = np.array([])
                 linestarts.append(currentlinestart)
-            currentlinestart = index +1
+            else:#clear what we already have
+                currentline = np.array([])
+            currentlinestart = index
     if(len(currentline) > minaountofframes):
         lines.append(currentline)
         linestarts.append(currentlinestart)
@@ -91,7 +94,7 @@ def findsequences(diffarr):
         h_plot(line, "line "+str(linest), start = linest)
         #current diff,  currentline, start index, mean diff in line, length
     #print("found", len(lines), "sequenzes")
-    return linestarts, lines
+    return linestarts, lines, maxdiff
 
     
 def getframeindeces(linestarts, lines):
@@ -106,9 +109,6 @@ def getframeindeces(linestarts, lines):
         print("AHHHHH there is no seqzence at the start, pls help")
         return 0, findbestlines(linestarts, lines)
 
-
-    # remove bas sequenzs until we only have two left.
-    # one should be in the middle or at the end if there are only two good sequences
 
 def findbestlines(linestarts, lines):
     nlines = []
@@ -125,11 +125,13 @@ def findbestlines(linestarts, lines):
     besttwo.sort(key=smallerstart)
     #print(besttwo)
     #choose the frame with the smallest score from the first one
-    bestone = besttwo[0]
+    bestone = besttwo[0] # list index out of range
     #print('startframe of bestone', bestone[1][0])
-    bestone = zip(bestone[0], bestone[1])
+    l = len(bestone[0])
+    bestone = list(map(list, zip(bestone[0], bestone[1]))) #0 is all difference scores, 1 is the frame
     m = min(bestone, key=lambda t: t[0])
-    return m[1]
+    ret = bestone[int(l/2)]
+    return ret[1]
 
 def smallerstart(elem):
     return elem[1][0]
@@ -144,7 +146,7 @@ def mse(imageA, imageB):
     err /= float(imageA.shape[0] * imageA.shape[1])
     return err  # return the MSE, the lower the error, the more "similar" the two images are
 
-def diffinframes(frame1, frame2):
+def diffbetweenframes(frame1, frame2):
     frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
     frame2= cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
 
@@ -166,33 +168,15 @@ def readframe(vid, frame_number):
 # important function
 def initialRegionsOfInterest(emptyframe, fullframe, filename):
     kernel = np.ones((3, 3), np.uint8)
-    #h_show('fullframe'+filename, fullframe)
     difference = cv2.subtract(emptyframe, fullframe)
     difference = cv2.add(difference, cv2.subtract( fullframe, emptyframe))
-    #h_show('difference_init' + filename, difference)
-    #h_show('difference_inverted calculation' + filename, cv2.subtract( fullframe, emptyframe))
     difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
     difference = cv2.GaussianBlur(difference, (5,5), 2)
     difference = (255-difference)
-    #h_show('difference'+filename, difference)
-    #difference = difference * 5
-    ret, thresh = cv2.threshold(difference, 0, 255,  cv2.THRESH_OTSU)
-    # black roi on white
+    ret, thresh = cv2.threshold(difference, 0, 255,  cv2.THRESH_OTSU) # black roi on white
     differentregions = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)  #erosion followed by dilation
-    #differentregions = cv2.erode(differentregions, kernel, iterations=2) # grow bottle cap regions
     differentregions = 255 - differentregions
-    #h_show('different regions'+filename, differentregions)
-    #h_show('differenceMask', differentregions)
     guessCropsWithTensor(differentregions, filename, fullframe)
-    #watershedthings(fullframe,differentregions, filename)
-    #differenceMask = np.ones(fullframe.shape[:2], dtype="uint8")
-    #differenceMask[:, :] = (differentregions != 0)  # 0 or 1 depending on wehter it is ==0
-    #regularasstemplatematching(cleanededges, fullframe, filename)
-    #regularasstemplatematching(fullframe, "img" + str(i))
-    #cleanedfullframe = cv2.cvtColor(fullframe, cv2.COLOR_BGR2GRAY)
-    # h_show('startcleanedframe' + filename, cleanedfullframe)
-    #cleanedfullframe = (1 - differenceMask) * 255 + differenceMask * cleanedfullframe
-    # h_show('cleanedframe'+filename, cleanedfullframe)
 
 # important function
 def guessCropsWithTensor(img, filename, originalimage, saveCrops = False):
@@ -351,7 +335,7 @@ def startFindCapsFromVideo(low, high = None, saveImages = False):
         high = low
     for i in range(low,high+1):
         print('start working on Video: ', i)
-        emptyframe, fullframe = findStaticFramesSingle('Videos/CV20_video_'+str(i)+'.mp4', 'CV20_video_'+str(i)+'.mp4')
+        emptyframe, fullframe = findStaticFramesSingle(i, filename= 'CV20_video_'+str(i)+'.mp4')
         if saveImages:
             cv2.imwrite('Results/CV20_video_'+str(i)+'.png', fullframe)
             cv2.imwrite('Results/CV20_video_'+str(i)+'_empty.png', emptyframe)
@@ -365,13 +349,16 @@ def findCaps(emptyframe,fullframe, i):
         # regularasstemplatematching(fullframe, filename= 'Video'+str(i)+'.png')
     print('end Find Caps. Time for Video', i, datetime.now()-now)
 
-def startFindStaticFrames(low, high = None, savePlot = False, folder ='Videos'):
+def startFindStaticFrames(low, high = None, savePlot = False):
     if high is None:
         high = low
     for i in range(low, high +1):
-        emptyframe, fullframe = findStaticFramesSingle(i, path=folder+'/',savePlot= savePlot)
-        cv2.imwrite('Results/CV20_video_'+str(i) + '.png', fullframe)
-        cv2.imwrite('Results/CV20_video_'+str(i)+ '_empty.png', emptyframe)
+        try:
+            emptyframe, fullframe = findStaticFramesSingle(i, savePlot= savePlot)
+            cv2.imwrite('Results/CV20_video_'+str(i) + '.png', fullframe)
+            cv2.imwrite('Results/CV20_video_'+str(i)+ '_empty.png', emptyframe)
+        except:
+            print("caught an error with video file")
 
 # important function
 def findStaticFramesSingle(filenum, path = 'Videos/', filename = None, savePlot = False):
@@ -380,7 +367,7 @@ def findStaticFramesSingle(filenum, path = 'Videos/', filename = None, savePlot 
     path = path + filename
     print('start frameselection', path, '...')
     now = datetime.now()
-    vid = cv2.VideoCapture(path)  # 50 is black
+    vid = cv2.VideoCapture(path)
     if not vid.isOpened():
         print("Error opening video stream or file")
         return
@@ -389,27 +376,59 @@ def findStaticFramesSingle(filenum, path = 'Videos/', filename = None, savePlot 
     #frame_count = vid.get(cv2.CAP_PROP_FRAME_COUNT)
     #print("videodata: fps: ", fps, "framecount: ", frame_count)
     diffs = diffsbetweenallframes(vid, filename, savePlot = savePlot)
-    linestarts, lines = findsequences(diffs)
+    print("mean", diffs.mean())
+    linestarts, lines, maxdiff = findsequences(diffs)
+
     if len(lines) < 1:
         print('to much action, threshhold excluded  everything')
         return
-    emptyscene, fullscene = getframeindeces(linestarts, lines)
-    emptyframe = readframe(vid, emptyscene)
-    fullframe = readframe(vid, fullscene)
-    print('choosing frame:', fullscene, '; min', fullscene/fps)
+    emptysceneindex, fullsceneindex = getframeindeces(linestarts, lines)
+    illustratelines(diffs, linestarts, lines, filename, fullsceneindex, maxdiff)
+    emptyframe = readframe(vid, emptysceneindex)
+    fullframe = readframe(vid, fullsceneindex)
+    #if diffbetweenframes(emptyframe, fullframe) > diffs.mean:
+     #   print("")
+    print('choosing frame:', fullsceneindex, '; min', fullsceneindex/fps)
     vid.release()
     print("end frameselection. time for", filename, datetime.now() - now)
     return emptyframe, fullframe
+    # sometimes real sequence is to short and gets cut out
+
+def illustratelines(diffs, linestats, lines, filename, choosen, maxdiff, save = True):
+    fig, ax = plt.subplots(figsize=(5, 4))
+    x = np.arange(0, len(diffs))
+    m = diffs.mean()
+    ax.scatter(x, diffs, marker=',', label='diffs between frames', s=4)
+    ax.set_ylabel("cut into sequences")
+    #ax.axhline(y=maxdiff, color="black")
+    ax.axhline(y=maxdiff, color="red")
+    ax.axvline(x = choosen)
+
+    for line, start in zip(lines,linestats):
+        x = np.arange(start, len(line)+start)
+        ax.scatter(x, line, marker=',', s = 4)
+    if save:
+        fig.savefig('Results/' + filename[:-4] + '_diffsplot.png')
+    plt.show()
+
 
 # important function
 import json
-def evaluateResults(videonum):
+
+def evaluateResults(low, high= None):
+    if high is None:
+        high = low
+    for i in range(low, high +1):
+        evaluateResultsSinge(i)
+def evaluateResultsSinge(videonum):
     success = True
     # visually compare the still frame of the video and the chosen still frame
     # evaluate how well the video frame was choosen
     intendedFrame = cv2.imread('Videos/CV20_image_'+str(videonum)+'.png')
     fullFrame = cv2.imread('Results/CV20_video_'+str(videonum)+'.png')
-    dif = diffinframes(intendedFrame, fullFrame)
+    h_show('intended frame' + str(videonum), intendedFrame, show = True)
+    h_show('chosenFrame'+ str(videonum) ,fullFrame, show = True)
+    dif = diffbetweenframes(intendedFrame, fullFrame)
     difference = cv2.subtract(intendedFrame, fullFrame)
     h_show('how well the frame was choosen '+str(videonum), difference, show= True)
     if dif > 50:
@@ -432,12 +451,13 @@ def evaluateResults(videonum):
                     foundlabel = fshape.get("label")
                     fmidpoint = middleofpoints(fshape.get("points"))
 
-                    print('Hello it is I')
 
 
     print('Evaluating Video', videonum, 'frame eval: ', dif)
 
 def middleofpoints(points):
+    if points is None:
+        return [0,0]
     sumX = 0
     sumY = 0
     length = len(points)
@@ -510,7 +530,7 @@ class PredictionModel:
         m = np.argmax(predictions[0])
         return self.inv_target_dict[m], predictions[0][m]
 
-if False:
+if True:
     predictionModel = PredictionModel()
 else:
     predictionModel = None
@@ -520,15 +540,18 @@ if __name__ == "__main__":
 
     now = datetime.now()
     #startFindCapsFromImages(1,187)
-    #startFindStaticFrames(24, savePlot = True)
+    #startFindStaticFrames(1,100, savePlot = True)
     #startFindStaticFramesAllVideos()
-    startFindStaticFrames(1,100, savePlot = True)
-    #startFindCapsFromVideo(100,102)
-    #startFindCapsFromImages(1)
+    #startFindStaticFrames(1,100, savePlot = True)
+    startFindCapsFromVideo(38)
+    #startFindCapsFromImages(1,100)
 
-    #evaluateResults(1)
+    #evaluateResults(25,30)
     print("total time", datetime.now()-now, 'without setting up tensorflow model')
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    # put hough voting on the black-white before connected components
+    #https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
 
