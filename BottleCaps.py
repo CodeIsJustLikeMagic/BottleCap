@@ -66,13 +66,22 @@ def diffofdiffs(diffarr):
     h_plot(diffofdiffs, "diffofdiffs")
 
 def findsequences(diffarr):
-    minaountofframes = 30
+    maxdiff = diffarr.mean()
+    linestarts, lines, _ = h_findsequences(diffarr, 30, maxdiff)
+    while (len(lines)<1 or (len(lines) == 1 and linestarts[0] == 0)) and maxdiff > 0: # lower the threshhold
+        maxdiff = maxdiff - diffarr.mean()/2
+        linestarts, lines, _ = h_findsequences(diffarr, 30, maxdiff)
+    while (len(lines)<1 or (len(lines) == 1 and linestarts[0] == 0)) and maxdiff < 10000: # raise the threshhold
+        maxdiff = maxdiff + diffarr.mean()/2
+        linestarts, lines, _ = h_findsequences(diffarr, 30, maxdiff)
+    return linestarts,lines,maxdiff
+
+def h_findsequences(diffarr, minaountofframes,  maxdiff):
     # I want seqzenzes of this were the diff is small, how many frames? how small is it?
     lines = []
     linestarts = []
     currentline = np.array([])
     currentlinestart = 0
-    maxdiff = diffarr.mean()# + np.var(diffarr)
     for index, d in enumerate(diffarr, start=1):
         if d < maxdiff:
             currentline = np.append(currentline, d)
@@ -330,7 +339,7 @@ def startFindCapsFromImages(low, high = None):
         if fullframe is not None and emptyframe is not None:
             findCaps(emptyframe,fullframe, i)
 
-def startFindCapsFromVideo(low, high = None, saveImages = False):
+def startFindCapsFromVideo(low, high = None, saveImages = True):
     if high is None:
         high = low
     for i in range(low,high+1):
@@ -543,7 +552,7 @@ if __name__ == "__main__":
     #startFindStaticFrames(1,100, savePlot = True)
     #startFindStaticFramesAllVideos()
     #startFindStaticFrames(1,100, savePlot = True)
-    startFindCapsFromVideo(38)
+    startFindCapsFromVideo(51)
     #startFindCapsFromImages(1,100)
 
     #evaluateResults(25,30)
