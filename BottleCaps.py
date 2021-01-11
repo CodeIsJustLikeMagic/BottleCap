@@ -4,6 +4,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
 import os
+import json
 
 #region help methods
 def h_show(title, image,show = False):
@@ -115,7 +116,7 @@ def getframeindeces(linestarts, lines):
         # now there should be one or two good seqzences.
         return 0, findbestlines(linestarts, lines)
     else:
-        print("AHHHHH there is no seqzence at the start, pls help")
+        #print("AHHHHH there is no seqzence at the start, pls help")
         return 0, findbestlines(linestarts, lines)
 
 
@@ -185,10 +186,53 @@ def initialRegionsOfInterest(emptyframe, fullframe, filename):
     ret, thresh = cv2.threshold(difference, 0, 255,  cv2.THRESH_OTSU) # black roi on white
     differentregions = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)  #erosion followed by dilation
     differentregions = 255 - differentregions
-    guessCropsWithTensor(differentregions, filename, fullframe)
+    #findLineswithHough(fullframe, differentregions,filename)
+    findCirclewithHough(fullframe,differentregions,filename)
+    #guessCropsWithTensor(differentregions, filename, fullframe)
+
+def findLineswithHough(img, gray, filename):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+    h_show('edges' + filename, edges, show=True)
+    minLineLength = 200
+    maxLineGap = 50
+    lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 200, minLineLength, maxLineGap)
+    if lines is None:
+        print("no lines")
+        return
+    #h_show('houghlines5' + filename, lines, show=True)
+    for x1, y1, x2, y2 in lines[0]:
+        cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+    h_show('houghlines5'+filename, img, show=True)
+
+def findCirclewithHough(img,gray,filename):
+    img = cv2.medianBlur(img, 5)
+    #gray = 255-gray
+    edges = cv2.Canny(gray, 50,150, apertureSize = 3)
+    #gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cimg = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+
+    h_show("edges"+filename, edges, show = True)
+    circles = cv2.HoughCircles(edges, cv2.HOUGH_GRADIENT, 1, 20,
+                               param1=50, param2=30, minRadius=3, maxRadius=50)
+    if circles is None:
+        print("No cirlces")
+        return
+    circles = np.uint16(np.around(circles))
+    for i in circles[0, :]:
+        # draw the outer circle
+        cv2.circle(cimg, (i[0], i[1]), i[2], (0, 255, 0), 2)
+        # draw the center of the circle
+        cv2.circle(cimg, (i[0], i[1]), 2, (0, 0, 255), 3)
+
+    h_show('detected circles'+filename, cimg,show = True)
 
 # important function
 def guessCropsWithTensor(img, filename, originalimage, saveCrops = False):
+    global predictionModel
+    if predictionModel is None:
+        predictionModel = PredictionModel()
     num_labels, labels = cv2.connectedComponents(img)
     # Map component labels to hue val
     occurenceOfLabels = np.bincount(labels.flatten())
@@ -422,8 +466,6 @@ def illustratelines(diffs, linestats, lines, filename, choosen, maxdiff, save = 
 
 
 # important function
-import json
-
 def evaluateResults(low, high= None):
     if high is None:
         high = low
@@ -477,12 +519,11 @@ def middleofpoints(points):
     midpointY = sumY/length
     return [midpointX,midpointY]
 
-
-import tensorflow as tf
 class PredictionModel:
     IMG_WIDTH = 200
     IMG_HEIGHT = 200
     def __init__(self):
+        import tensorflow as tf
         print('setting up TensorFlowModel')
         now = datetime.now()
 
@@ -539,10 +580,7 @@ class PredictionModel:
         m = np.argmax(predictions[0])
         return self.inv_target_dict[m], predictions[0][m]
 
-if True:
-    predictionModel = PredictionModel()
-else:
-    predictionModel = None
+predictionModel = None
 maxdiff = 50# max diff for sequence of frames
 plot = True
 if __name__ == "__main__":
@@ -551,12 +589,12 @@ if __name__ == "__main__":
     #startFindCapsFromImages(1,187)
     #startFindStaticFrames(1,100, savePlot = True)
     #startFindStaticFramesAllVideos()
-    #startFindStaticFrames(1,100, savePlot = True)
-    startFindCapsFromVideo(1,100)
-    #startFindCapsFromImages(1,100)
+    #startFindStaticFrames(1, savePlot = True)
+    #startFindCapsFromVideo(1,100)
+    startFindCapsFromImages(1,6)
 
     #evaluateResults(25,30)
-    print("total time", datetime.now()-now, 'without setting up tensorflow model')
+    print("total time", datetime.now()-now)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
