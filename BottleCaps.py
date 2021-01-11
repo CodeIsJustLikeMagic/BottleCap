@@ -391,7 +391,7 @@ def findStaticFramesSingle(filenum, path = 'Videos/', filename = None, savePlot 
     if len(lines) < 1:
         print('to much action, threshhold excluded  everything')
         return
-    emptysceneindex, fullsceneindex = getframeindeces(linestarts, lines)
+    emptysceneindex, fullsceneindex = getframeindeces(linestarts.copy(), lines.copy())
     illustratelines(diffs, linestarts, lines, filename, fullsceneindex, maxdiff)
     emptyframe = readframe(vid, emptysceneindex)
     fullframe = readframe(vid, fullsceneindex)
@@ -552,7 +552,7 @@ if __name__ == "__main__":
     #startFindStaticFrames(1,100, savePlot = True)
     #startFindStaticFramesAllVideos()
     #startFindStaticFrames(1,100, savePlot = True)
-    startFindCapsFromVideo(51)
+    startFindCapsFromVideo(1,100)
     #startFindCapsFromImages(1,100)
 
     #evaluateResults(25,30)
