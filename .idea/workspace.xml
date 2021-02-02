@@ -2,9 +2,37 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a2aa0cea-01a8-4870-a422-26b361fd7d31" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/houghlines5.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Bericht" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Plan of Attack" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/Arbeit.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/Arbeit.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/Arbeit.synctex.gz" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/Arbeit.synctex.gz" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/Arbeit.tex" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/Arbeit.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/Literaturverzeichnis.bib" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/Literaturverzeichnis.bib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/Meta.tex" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/Meta.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Abbildungsverzeichnis.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Abkürzungsverzeichnis.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Deckblatt.tex" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/abschnitte/Deckblatt.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Einleitung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Erklärung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Stand_Forschung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/abschnitte/Zusammenfassung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Bericht/aussehen/hbrs-inf.sty" beforeDir="false" afterPath="$PROJECT_DIR$/Bericht/aussehen/hbrs-inf.sty" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/BottleCaps.py" beforeDir="false" afterPath="$PROJECT_DIR$/BottleCaps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/Arbeit.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/Arbeit.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/Arbeit.synctex.gz" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/Arbeit.synctex.gz" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/Arbeit.tex" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/Arbeit.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/Literaturverzeichnis.bib" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/Literaturverzeichnis.bib" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/Meta.tex" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/Meta.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Abbildungsverzeichnis.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Abkürzungsverzeichnis.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Deckblatt.tex" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/abschnitte/Deckblatt.tex" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Einleitung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Erklärung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Stand_Forschung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/abschnitte/Zusammenfassung.tex" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Plan of Attack/aussehen/hbrs-inf.sty" beforeDir="false" afterPath="$PROJECT_DIR$/Plan of Attack/aussehen/hbrs-inf.sty" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -162,7 +190,11 @@
       <workItem from="1610106677648" duration="20902000" />
       <workItem from="1610311842549" duration="19496000" />
       <workItem from="1610337724697" duration="1162000" />
-      <workItem from="1610374656726" duration="8882000" />
+      <workItem from="1610374656726" duration="20935000" />
+      <workItem from="1610470522779" duration="680000" />
+      <workItem from="1610657728907" duration="21000" />
+      <workItem from="1612102935917" duration="4766000" />
+      <workItem from="1612189134864" duration="11500000" />
     </task>
     <servers />
   </component>
@@ -181,45 +213,45 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="473" y="435" key="FileChooserDialogImpl/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608328721678" />
-    <state width="1877" height="149" key="GridCell.Tab.0.bottom" timestamp="1610396808802">
+    <state width="571" height="250" key="GridCell.Tab.0.bottom" timestamp="1612224510139">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="149" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610396808802" />
-    <state width="1877" height="342" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338487679" />
-    <state width="1877" height="149" key="GridCell.Tab.0.center" timestamp="1610396808802">
+    <state width="571" height="250" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612224510139" />
+    <state width="1877" height="124" key="GridCell.Tab.0.bottom/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1612207786325" />
+    <state width="571" height="250" key="GridCell.Tab.0.center" timestamp="1612224510139">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="149" key="GridCell.Tab.0.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610396808802" />
-    <state width="1877" height="342" key="GridCell.Tab.0.center/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338487679" />
-    <state width="1877" height="149" key="GridCell.Tab.0.left" timestamp="1610396808801">
+    <state width="571" height="250" key="GridCell.Tab.0.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612224510139" />
+    <state width="1877" height="124" key="GridCell.Tab.0.center/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1612207786325" />
+    <state width="571" height="250" key="GridCell.Tab.0.left" timestamp="1612224510138">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="149" key="GridCell.Tab.0.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610396808801" />
-    <state width="1877" height="342" key="GridCell.Tab.0.left/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338487679" />
-    <state width="1877" height="149" key="GridCell.Tab.0.right" timestamp="1610396808802">
+    <state width="571" height="250" key="GridCell.Tab.0.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612224510138" />
+    <state width="1877" height="124" key="GridCell.Tab.0.left/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1612207786325" />
+    <state width="571" height="250" key="GridCell.Tab.0.right" timestamp="1612224510139">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="149" key="GridCell.Tab.0.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610396808802" />
-    <state width="1877" height="342" key="GridCell.Tab.0.right/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338487679" />
-    <state width="1877" height="321" key="GridCell.Tab.1.bottom" timestamp="1610383153261">
+    <state width="571" height="250" key="GridCell.Tab.0.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612224510139" />
+    <state width="1877" height="124" key="GridCell.Tab.0.right/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1612207786325" />
+    <state width="914" height="353" key="GridCell.Tab.1.bottom" timestamp="1612221382080">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="321" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610383153261" />
+    <state width="914" height="353" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612221382080" />
     <state width="1877" height="321" key="GridCell.Tab.1.bottom/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338226481" />
-    <state width="1877" height="321" key="GridCell.Tab.1.center" timestamp="1610383153261">
+    <state width="914" height="353" key="GridCell.Tab.1.center" timestamp="1612221382080">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="321" key="GridCell.Tab.1.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610383153261" />
+    <state width="914" height="353" key="GridCell.Tab.1.center/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612221382080" />
     <state width="1877" height="321" key="GridCell.Tab.1.center/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338226481" />
-    <state width="1877" height="321" key="GridCell.Tab.1.left" timestamp="1610383153261">
+    <state width="914" height="353" key="GridCell.Tab.1.left" timestamp="1612221382080">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="321" key="GridCell.Tab.1.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610383153261" />
+    <state width="914" height="353" key="GridCell.Tab.1.left/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612221382080" />
     <state width="1877" height="321" key="GridCell.Tab.1.left/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338226481" />
-    <state width="1877" height="321" key="GridCell.Tab.1.right" timestamp="1610383153261">
+    <state width="914" height="353" key="GridCell.Tab.1.right" timestamp="1612221382080">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="321" key="GridCell.Tab.1.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610383153261" />
+    <state width="914" height="353" key="GridCell.Tab.1.right/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612221382080" />
     <state width="1877" height="321" key="GridCell.Tab.1.right/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610338226481" />
     <state x="2383" y="502" key="SettingsEditor" timestamp="1608574850388">
       <screen x="1920" y="337" width="1920" height="1040" />
@@ -230,38 +262,27 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state width="968" height="528" key="XDebugger.FullValuePopup/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1607897524728" />
-    <state x="656" y="343" key="com.intellij.ide.util.TipDialog" timestamp="1610378369484">
+    <state x="656" y="343" key="com.intellij.ide.util.TipDialog" timestamp="1612189137364">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="656" y="343" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1610378369484" />
+    <state x="656" y="343" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1612189137364" />
     <state x="2576" y="680" key="com.intellij.ide.util.TipDialog/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1610337725018" />
     <state x="1939" y="375" width="956" height="924" key="dock-window-1" timestamp="1608494672132">
       <screen x="1920" y="337" width="1920" height="1040" />
     </state>
     <state x="1939" y="375" width="956" height="924" key="dock-window-1/0.0.1920.1040/1920.337.1920.1040@0.0.1920.1040" timestamp="1608494672132" />
+    <state x="2621" y="500" key="refactoring.ChangeSignatureDialog" timestamp="1612207899826">
+      <screen x="1920" y="337" width="1920" height="1040" />
+    </state>
+    <state x="2621" y="500" key="refactoring.ChangeSignatureDialog/0.0.1920.1040/1920.337.1920.1040@1920.337.1920.1040" timestamp="1612207899826" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/BottleCaps.py</url>
-          <line>469</line>
-          <option name="timeStamp" value="23" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/BottleCaps.py</url>
-          <line>471</line>
-          <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/BottleCaps.py</url>
-          <line>438</line>
-          <option name="timeStamp" value="34" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/BottleCaps.py</url>
-          <line>1</line>
-          <option name="timeStamp" value="35" />
+          <line>55</line>
+          <option name="timeStamp" value="39" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -273,6 +294,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/BottleCaps$ObjectClassificationTest.coverage" NAME="ObjectClassificationTest Coverage Results" MODIFIED="1608497727842" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/BottleCaps$BottleCaps.coverage" NAME="BottleCaps Coverage Results" MODIFIED="1610396808797" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/BottleCaps$BottleCaps.coverage" NAME="BottleCaps Coverage Results" MODIFIED="1612224510134" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
