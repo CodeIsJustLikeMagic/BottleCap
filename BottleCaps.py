@@ -6,42 +6,92 @@ from datetime import datetime
 import os
 import json
 
-
-# region help methods
-def h_show(title, image, show=False, resize=True):
-    height = image.shape[0]
-    width = image.shape[1]
-    # image = cv2.resize(image, (width, height))
-    if resize:
-        image = cv2.resize(image, (int(width * 0.5), int(height * 0.5)))
-    if show or all_show: # allshow overwrites whatever specifics I added to each plot call
-        cv2.imshow(title, image)
-
-
-def h_plot(arr, description, filename='', start=0, maxdiff = None, save=False):
-    fig, ax = plt.subplots(figsize=(5, 4))
-    x = np.arange(start, len(arr) + start)
-    #m = arr.mean()
-    ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
-    ax.set_ylabel(description)
-    #ax.axhline(y=maxdiff, color="black")
-    #ax.axhline(y=m, color="red")
-    if save:
-        fig.savefig('misc/' + filename[:-4] + '_' + description + '.png')
-    if plot:
-        plt.show()
-
-
-def read_video(vid):  # show video
-    while vid.isOpened():
-        ret, frame = vid.read()
-        if not ret:
-            break
-
-
-# endregion
 # region find frames
-def diffs_between_all_frames(vid, filename, savePlot=False):
+# find the static scene of a video
+
+# important function
+def find_static_frames_single(filenum, path='Videos/', filename=None, savePlot=False):
+    if filename is None:
+        filename = "CV20_video_" + str(filenum) + ".mp4"
+    path = path + filename
+    print('start frameselection', path, '...')
+    now = datetime.now()
+    vid = cv2.VideoCapture(path)
+    if not vid.isOpened():
+        print("Error opening video stream or file")
+        return
+
+    fps = vid.get(cv2.CAP_PROP_FPS)
+    diffs = diffs_between_all_frames(vid, filename, savePlot=True)
+    print("mean", diffs.mean())
+    linestarts, lines, maxdiff = find_sequences(diffs)
+
+    if len(lines) < 1:
+        print('to much action, threshhold excluded  everything')
+        return
+    emptysceneindex, fullsceneindex = get_frame_indeces_of_best_line(linestarts.copy(), lines.copy())
+    illustrate_lines(diffs, linestarts, lines, filename, fullsceneindex, maxdiff)
+    emptyframe = read_frame(vid, emptysceneindex)
+    fullframe = read_frame(vid, fullsceneindex)
+    print('choosing frame:', fullsceneindex, '; min', fullsceneindex / fps)
+    vid.release()
+    print("end frameselection. time for", filename, datetime.now() - now)
+    return emptyframe, fullframe
+    # sometimes real sequence is to short and gets cut out
+
+def start_find_static_frames(low, high=None, savePlot=False):
+    if high is None:
+        high = low
+    for i in range(low, high + 1):
+        try:
+            emptyframe, fullframe = find_static_frames_single(i, savePlot=savePlot)
+            cv2.imwrite('Results/CV20_video_' + str(i) + '.png', fullframe)
+            cv2.imwrite('Results/CV20_video_' + str(i) + '_empty.png', emptyframe)
+        except:
+            print("caught an error with video file")
+def get_frame_indeces_of_best_line(linestarts, lines):
+    # there should be one szene right at the start, one in the middle and one at the end
+    if 0 in linestarts:# if there is a scequence that starts at 0
+        linestarts.pop(0) # discard it
+        lines.pop(0)
+        # the sequzence at the start is worse than the main sequenze.
+        # now there should be one or two good seqzences.
+        return 0, find_bestline(linestarts, lines)
+    else:
+        # print("AHHHHH there is no seqzence at the start, pls help")
+        return 0, find_bestline(linestarts, lines)
+
+
+def find_bestline(linestarts, lines):
+    nlines = []
+    for line, linest in zip(lines, linestarts):
+        # print(linest, np.std(line), np.mean(line))
+        frameindeces = np.array(range(linest, linest + len(line)))
+        line = np.vstack([line, frameindeces])
+        nlines.append(line)
+    nlines.sort(key=sort_by_mean)
+    # so now the first or the second one is our sequence
+    besttwo = nlines[:2]
+    # if the second line mean is muuch worse than the first one there is probably one one static szene
+    besttwo.sort(key=smaller_start)
+    # choose the frame with the smallest score from the first one
+    bestone = besttwo[0]  # list index out of range
+    l = len(bestone[0])
+    bestone = list(map(list, zip(bestone[0], bestone[1])))  # 0 is all difference scores, 1 is the frame
+    m = min(bestone, key=lambda t: t[0])
+    ret = bestone[int(l / 2)]
+    return ret[1]
+
+
+def sort_by_mean(elem):
+    return np.mean(elem[0])
+
+
+def smaller_start(elem):
+    return elem[1][0]
+
+
+def diffs_between_all_frames(vid, filename, savePlot=False):#compute similarity (mse) over all frames
     diffs = np.array([])
 
     vid.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -105,48 +155,6 @@ def h_find_sequences(diffarr, minaountofframes, maxdiff):
     return linestarts, lines, maxdiff
 
 
-def get_frame_indeces_of_best_line(linestarts, lines):
-    # there should be one szene right at the start, one in the middle and one at the end
-    if 0 in linestarts:# if there is a scequence that starts at 0
-        linestarts.pop(0) # discard it
-        lines.pop(0)
-        # the sequzence at the start is worse than the main sequenze.
-        # now there should be one or two good seqzences.
-        return 0, find_bestline(linestarts, lines)
-    else:
-        # print("AHHHHH there is no seqzence at the start, pls help")
-        return 0, find_bestline(linestarts, lines)
-
-
-def find_bestline(linestarts, lines):
-    nlines = []
-    for line, linest in zip(lines, linestarts):
-        # print(linest, np.std(line), np.mean(line))
-        frameindeces = np.array(range(linest, linest + len(line)))
-        line = np.vstack([line, frameindeces])
-        nlines.append(line)
-    nlines.sort(key=sort_by_mean)
-    # so now the first or the second one is our sequence
-    besttwo = nlines[:2]
-    # if the second line mean is muuch worse than the first one there is probably one one static szene
-    besttwo.sort(key=smaller_start)
-    # choose the frame with the smallest score from the first one
-    bestone = besttwo[0]  # list index out of range
-    l = len(bestone[0])
-    bestone = list(map(list, zip(bestone[0], bestone[1])))  # 0 is all difference scores, 1 is the frame
-    m = min(bestone, key=lambda t: t[0])
-    ret = bestone[int(l / 2)]
-    return ret[1]
-
-
-def sort_by_mean(elem):
-    return np.mean(elem[0])
-
-
-def smaller_start(elem):
-    return elem[1][0]
-
-
 def mse(imageA, imageB):
     # the 'Mean Squared Error' between the two images is the
     # sum of the squared difference between the two images;
@@ -175,32 +183,99 @@ def read_frame(vid, frame_number):
     return False
 
 
+def illustrate_lines(diffs, linestats, lines, filename, choosen, maxdiff, save=True):
+    fig, ax = plt.subplots(figsize=(5, 4))
+    x = np.arange(0, len(diffs))
+    m = diffs.mean()
+    ax.scatter(x, diffs, marker=',', label='diffs between frames', s=4)
+    ax.set_ylabel("cut into sequences")
+    # ax.axhline(y=maxdiff, color="black")
+    ax.axhline(y=maxdiff, color="red")
+    ax.axvline(x=choosen)
+
+    for line, start in zip(lines, linestats):
+        x = np.arange(start, len(line) + start)
+        ax.scatter(x, line, marker=',', s=4)
+    if save:
+        fig.savefig('Results/' + filename[:-4] + '_diffsplot.png')
+    plt.show()
+
 # endregion
-# region regions of interest
+
+# region find caps
+#important function
+def find_caps(emptyframe, fullframe, i, skip_tensor = False):
+    print('start Find Caps for Video', i, '...')
+    now = datetime.now()
+    if fullframe is not None and emptyframe is not None:
+        filename = 'Video_' + str(i) + '.png'
+
+        differentregions = preprocess_difference_regions(emptyframe, fullframe, filename)
+
+        # findContours(fullframe, filename)
+        #lines = find_container(emptyframe, filename)
+        # houghTransformSkimage(cv2.Canny(fullframe, 50, 150, apertureSize=3))
+        # findCirclewithHough(fullframe,differentregions,filename)
+        #find_circle_with_hough(fullframe,differentregions,filename)
+        #find_circle_with_hough(differentregions,differentregions,filename)
+        num_labels, labels = cv2.connectedComponents(differentregions)
+        show_colored_connected_components(labels, filename)
+
+        if not skip_tensor:
+            guess_regions_with_tensor(labels, num_labels, differentregions, filename, fullframe)
+
+        print('end Find Caps. Time for Video', i, datetime.now() - now)
+    else:
+        print('no images found for Video', i)
+
 # important function
-def initial_regions_of_interest(emptyframe, fullframe, filename):
+def preprocess_difference_regions(emptyframe, fullframe, filename):
     kernel = np.ones((3, 3), np.uint8)
-    difference = cv2.subtract(emptyframe, fullframe)
-    difference = cv2.add(difference, cv2.subtract(fullframe, emptyframe))
-    difference = cv2.cvtColor(difference, cv2.COLOR_BGR2GRAY)
+
+    # absolute difference between pixels (absolute so we dont clip negative values)
+    difference = cv2.absdiff(cv2.cvtColor(fullframe, cv2.COLOR_BGR2GRAY), cv2.cvtColor(emptyframe, cv2.COLOR_BGR2GRAY))
+    alledges = cv2.cv2.Canny(difference, 10, 150)
     difference = cv2.GaussianBlur(difference, (5, 5), 2)
     difference = (255 - difference)
+
+    # to binary
     ret, thresh = cv2.threshold(difference, 0, 255, cv2.THRESH_OTSU)  # black roi on white
-    differentregions = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)  # erosion followed by dilation
-    differentregions = 255 - differentregions
-    lines = findLineswithHough(differentregions, filename, threshhold=180, minLineLength=20, maxLineGap=150, show=True)
-    h_show('regions' + filename, differentregions)
-    if lines is not None:  # remove lines if there are any :)
-        lines = cv2.dilate(lines, kernel, iterations=2)
-        differentregions = cv2.subtract(differentregions, lines)
+    #ret, thresh = cv2.threshold(difference, 10, 255, cv2.THRESH_BINARY)  # black roi on white
+    difference_mask = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)  # erosion followed by dilation
+    difference_mask = 255 - difference_mask
 
-    # findContours(fullframe, filename)
-    lines = findContainer(emptyframe,filename)
-    # houghTransformSkimage(cv2.Canny(fullframe, 50, 150, apertureSize=3))
-    # findCirclewithHough(fullframe,differentregions,filename)
+    # add edges to mask
+    alledges = cv2.morphologyEx(alledges, cv2.MORPH_DILATE, kernel, iterations = 1)
+    difference_mask = cv2.add(difference_mask, alledges)
 
-    guess_crops_with_tensor(differentregions, filename, fullframe)
+    #idea: remove lines to clean up
+    #lines = find_lines_with_hough(differentregions, filename, threshhold=180, minLineLength=20, maxLineGap=150, show=False)
+    #if lines is not None:  # remove lines if there are any :)
+    #    lines = cv2.dilate(lines, kernel, iterations=2)
+    #    differentregions = cv2.subtract(differentregions, lines)
 
+    return difference_mask
+
+def start_find_caps_from_images(low, high=None, skip_tensor = False):
+    if high is None:
+        high = low
+    for i in range(low, high + 1):
+        print('start working on Video: ', i)
+        fullframe = cv2.imread('Results/CV20_video_' + str(i) + '.png')
+        emptyframe = cv2.imread('Results/CV20_video_' + str(i) + '_empty.png')
+        find_caps(emptyframe, fullframe, i, skip_tensor=skip_tensor)
+
+
+def start_find_caps_from_video(low, high=None, saveImages=True):
+    if high is None:
+        high = low
+    for i in range(low, high + 1):
+        print('start working on Video: ', i)
+        emptyframe, fullframe = find_static_frames_single(i, filename='CV20_video_' + str(i) + '.mp4')
+        if saveImages:
+            cv2.imwrite('Results/CV20_video_' + str(i) + '.png', fullframe)
+            cv2.imwrite('Results/CV20_video_' + str(i) + '_empty.png', emptyframe)
+        find_caps(emptyframe, fullframe, i)
 
 def houghTransformSkimage(edges):
     # https://scikit-image.org/docs/dev/auto_examples/edges/plot_line_hough_transform.html
@@ -242,14 +317,14 @@ def houghTransformSkimage(edges):
     plt.show()
 
 
-def findContainer(emptyframe, filename):
+def find_container(emptyframe, filename):
     gray = cv2.cvtColor(emptyframe, cv2.COLOR_BGR2GRAY)
-    lineView = findLineswithHough(gray, filename, threshhold=180, minLineLength=20, maxLineGap=150)
-    lineView = findLineswithHough(lineView, filename, threshhold=200, minLineLength=100, maxLineGap=500, save=True)
+    lineView = find_lines_with_hough(gray, filename, threshhold=180, minLineLength=20, maxLineGap=150)
+    lineView = find_lines_with_hough(lineView, filename, threshhold=200, minLineLength=100, maxLineGap=500, save=True)
 
 
-def findLineswithHough(gray, filename, rho=1, theta=np.pi / 180, threshhold=180, minLineLength=20, maxLineGap=150,
-                       save=False, show=False):
+def find_lines_with_hough(gray, filename, rho=1, theta=np.pi / 180, threshhold=180, minLineLength=20, maxLineGap=150,
+                          save=False, show=False):
     edges = cv2.Canny(gray, 10, 150)
     lineView = np.zeros(gray.shape, dtype=np.uint8)
     h_show('edges' + filename, edges, show=show)
@@ -268,7 +343,7 @@ def findLineswithHough(gray, filename, rho=1, theta=np.pi / 180, threshhold=180,
     return lineView
 
 
-def findContours(img, filename):
+def find_contours(img, filename):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray, 50, 150, apertureSize=3)
     # --- First obtain the threshold using the greyscale image ---
@@ -289,16 +364,18 @@ def findContours(img, filename):
     h_show('contours' + filename, final)
 
 
-def findCirclewithHough(img, gray, filename):
-    img = cv2.medianBlur(img, 5)
+def find_circle_with_hough(img, gray, filename):
+    cimg = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
+    #img = cv2.medianBlur(img, 5)
     # gray = 255-gray
-    edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+    #edges = cv2.Canny(gray, 50, 150, apertureSize=3)
     # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    cimg = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+    #cimg = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
-    h_show("edges" + filename, edges, show=True)
-    circles = cv2.HoughCircles(edges, cv2.HOUGH_GRADIENT, 1, 20,
-                               param1=50, param2=30, minRadius=3, maxRadius=50)
+    #h_show("edges" + filename, edges, show=True)
+    h_show("regions" + filename, gray, show=False)
+    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 20,
+                               param1=50, param2=20, minRadius=40, maxRadius=100)
     if circles is None:
         print("No cirlces")
         return
@@ -313,11 +390,11 @@ def findCirclewithHough(img, gray, filename):
 
 
 # important function
-def guess_crops_with_tensor(img, filename, originalimage, saveCrops=False):
+def guess_regions_with_tensor(labels, num_labels, img, filename, originalimage, saveCrops=False, hide_distractors = False):
     global predictionModel
     if predictionModel is None:
         predictionModel = PredictionModel()
-    num_labels, labels = cv2.connectedComponents(img)
+
     # Map component labels to hue val
     occurenceOfLabels = np.bincount(labels.flatten())
     occurenceOfLabels = occurenceOfLabels[1::]
@@ -328,7 +405,7 @@ def guess_crops_with_tensor(img, filename, originalimage, saveCrops=False):
     if predictionModel is not None:
 
         for occ, lblind in zip(occurenceOfLabels, range(1, num_labels)):
-            if occ > 300:
+            if occ > 600:
                 # calculate boundinBox for connectedcomponent
                 # get min x,y and max x,y position of l
                 x1 = np.argmax(labels == lblind, axis=1)  # along x axis
@@ -352,28 +429,27 @@ def guess_crops_with_tensor(img, filename, originalimage, saveCrops=False):
 
                 # guess if boundingbox contains bottlecap
                 objclass, prob = predictionModel.prediction(crop_img)
-                cv2.rectangle(originalimage, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                # save resulting boundingBox in json file for evaluation
+                bounding_box = {"label": str(objclass), "points": [[str(x1), str(y1)], [str(x2), str(y2)]]}
+                shapes.append(bounding_box)
 
-                # save resulting boundingBox in json file
-                resultdict = {}
-                resultdict["label"] = str(objclass)
-                resultdict["points"] = [[str(x1), str(y1)], [str(x2), str(y2)]]
-                shapes.append(resultdict)
-
-                # save Image with Boxes
-                # font
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                # org
-                org = (x1, y1 - 10)
-                # fontScale
-                fontScale = 0.7
-                # Blue color in BGR
-                color = (0, 0, 255)
-                # Line thickness of 2 px
-                thickness = 1
-                # Using cv2.putText() method
-                originalimage = cv2.putText(originalimage, objclass + " " + str(prob), org, font,
-                                            fontScale, color, thickness, cv2.LINE_AA)
+                # illustrate bounding box and description on image
+                if not (str(objclass) == "Distractor" and hide_distractors) :
+                    cv2.rectangle(originalimage, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                    # save Image with Boxes
+                    # font
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    # org
+                    org = (x1, y1 - 10)
+                    # fontScale
+                    fontScale = 0.7
+                    # Blue color in BGR
+                    color = (0, 0, 255)
+                    # Line thickness of 2 px
+                    thickness = 1
+                    # Using cv2.putText() method
+                    originalimage = cv2.putText(originalimage, objclass + " " + str(prob), org, font,
+                                                fontScale, color, thickness, cv2.LINE_AA)
                 h_show("testcropimg" + str(lblind) + filename, crop_img, show=False)
                 if True:
                     cv2.imwrite('Results/CV20_' + filename[:-4] + '_caps.png', originalimage)
@@ -384,7 +460,6 @@ def guess_crops_with_tensor(img, filename, originalimage, saveCrops=False):
     st = 'Results/CV20_' + filename[:-4] + '.json'
     with open('Results/CV20_' + filename[:-4] + '.json', 'w') as outfile:
         json.dump(jsonDict, outfile)
-    show_colored_connected_components(labels, filename)
     # h_show("detected"+filename, originalimage)
 
 
@@ -412,97 +487,7 @@ def minwithout0(ar):
 
 # endregion
 
-def start_find_caps_from_images(low, high=None):
-    if high is None:
-        high = low
-    for i in range(low, high + 1):
-        print('start working on Video: ', i)
-        fullframe = cv2.imread('Results/CV20_video_' + str(i) + '.png')
-        emptyframe = cv2.imread('Results/CV20_video_' + str(i) + '_empty.png')
-        find_caps(emptyframe, fullframe, i)
-
-
-def start_find_caps_from_video(low, high=None, saveImages=True):
-    if high is None:
-        high = low
-    for i in range(low, high + 1):
-        print('start working on Video: ', i)
-        emptyframe, fullframe = find_static_frames_single(i, filename='CV20_video_' + str(i) + '.mp4')
-        if saveImages:
-            cv2.imwrite('Results/CV20_video_' + str(i) + '.png', fullframe)
-            cv2.imwrite('Results/CV20_video_' + str(i) + '_empty.png', emptyframe)
-        find_caps(emptyframe, fullframe, i)
-
-
-def find_caps(emptyframe, fullframe, i):
-    print('start Find Caps for Video', i, '...')
-    now = datetime.now()
-    if fullframe is not None and emptyframe is not None:
-        initial_regions_of_interest(emptyframe, fullframe, 'Video_' + str(i) + '.png')
-        print('end Find Caps. Time for Video', i, datetime.now() - now)
-    else:
-        print('no images found for Video', i)
-
-
-def start_find_static_frames(low, high=None, savePlot=False):
-    if high is None:
-        high = low
-    for i in range(low, high + 1):
-        try:
-            emptyframe, fullframe = find_static_frames_single(i, savePlot=savePlot)
-            cv2.imwrite('Results/CV20_video_' + str(i) + '.png', fullframe)
-            cv2.imwrite('Results/CV20_video_' + str(i) + '_empty.png', emptyframe)
-        except:
-            print("caught an error with video file")
-
-
-# important function
-def find_static_frames_single(filenum, path='Videos/', filename=None, savePlot=False):
-    if filename is None:
-        filename = "CV20_video_" + str(filenum) + ".mp4"
-    path = path + filename
-    print('start frameselection', path, '...')
-    now = datetime.now()
-    vid = cv2.VideoCapture(path)
-    if not vid.isOpened():
-        print("Error opening video stream or file")
-        return
-
-    fps = vid.get(cv2.CAP_PROP_FPS)
-    diffs = diffs_between_all_frames(vid, filename, savePlot=True)
-    print("mean", diffs.mean())
-    linestarts, lines, maxdiff = find_sequences(diffs)
-
-    if len(lines) < 1:
-        print('to much action, threshhold excluded  everything')
-        return
-    emptysceneindex, fullsceneindex = get_frame_indeces_of_best_line(linestarts.copy(), lines.copy())
-    illustrate_lines(diffs, linestarts, lines, filename, fullsceneindex, maxdiff)
-    emptyframe = read_frame(vid, emptysceneindex)
-    fullframe = read_frame(vid, fullsceneindex)
-    print('choosing frame:', fullsceneindex, '; min', fullsceneindex / fps)
-    vid.release()
-    print("end frameselection. time for", filename, datetime.now() - now)
-    return emptyframe, fullframe
-    # sometimes real sequence is to short and gets cut out
-
-def illustrate_lines(diffs, linestats, lines, filename, choosen, maxdiff, save=True):
-    fig, ax = plt.subplots(figsize=(5, 4))
-    x = np.arange(0, len(diffs))
-    m = diffs.mean()
-    ax.scatter(x, diffs, marker=',', label='diffs between frames', s=4)
-    ax.set_ylabel("cut into sequences")
-    # ax.axhline(y=maxdiff, color="black")
-    ax.axhline(y=maxdiff, color="red")
-    ax.axvline(x=choosen)
-
-    for line, start in zip(lines, linestats):
-        x = np.arange(start, len(line) + start)
-        ax.scatter(x, line, marker=',', s=4)
-    if save:
-        fig.savefig('Results/' + filename[:-4] + '_diffsplot.png')
-    plt.show()
-
+# region evaluation
 # important function
 def evaluate_results(low, high=None):
     if high is None:
@@ -555,8 +540,35 @@ def middle_of_points(points):
     midpointX = sumX / length
     midpointY = sumY / length
     return [midpointX, midpointY]
+# endregion
+
+# region help methods
+def h_show(title, image, show=False, resize=True):
+    height = image.shape[0]
+    width = image.shape[1]
+    # image = cv2.resize(image, (width, height))
+    if resize:
+        image = cv2.resize(image, (int(width * 0.5), int(height * 0.5)))
+    if show and all_show: # allshow overwrites whatever specifics I added to each plot call
+        cv2.imshow(title, image)
 
 
+def h_plot(arr, description, filename='', start=0, maxdiff = None, save=False):
+    fig, ax = plt.subplots(figsize=(5, 4))
+    x = np.arange(start, len(arr) + start)
+    #m = arr.mean()
+    ax.scatter(x, arr, marker=',', label='diffs between frames', s=4)
+    ax.set_ylabel(description)
+    #ax.axhline(y=maxdiff, color="black")
+    #ax.axhline(y=m, color="red")
+    if save:
+        fig.savefig('misc/' + filename[:-4] + '_' + description + '.png')
+    if plot:
+        plt.show()
+
+# endregion
+
+# region tensor flow object classification model
 class PredictionModel:
     IMG_WIDTH = 200
     IMG_HEIGHT = 200
@@ -585,7 +597,7 @@ class PredictionModel:
         model.compile(optimizer='rmsprop', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
         history = model.fit(x=tf.cast(np.array(img_data), tf.float64), y=tf.cast(list(map(int, target_val)), tf.int32),
-                            epochs=4)
+                            epochs=number_of_epochs)
         print(history)
         print('finished TensorFlow Model. Time', datetime.now() - now)
         self.model = model
@@ -621,13 +633,15 @@ class PredictionModel:
 
 
 predictionModel = None
-
-plot = True
-all_show = False
+# endregion
+plot = False
+all_show = True
+number_of_epochs = 20
 if __name__ == "__main__":
     now = datetime.now()
-    start_find_static_frames(59)
-    #start_find_caps_from_video(1,100)
+    #start_find_static_frames(100)
+    start_find_caps_from_images(1,200, skip_tensor=False)
+    #start_find_caps_from_video(100,200)
     #evaluate_results(25,30)
     print("total time", datetime.now() - now)
 
